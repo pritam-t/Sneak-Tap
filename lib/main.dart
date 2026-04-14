@@ -20,30 +20,48 @@ import 'services/database_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final dbService = DatabaseService();
-  await dbService.init();
+  DatabaseService? dbService;
+  AuthService? authService;
+  ShoeRepository? shoeRepo;
+  CartRepository? cartRepo;
+  WishlistRepository? wishlistRepo;
+  SharedPreferences? prefs;
 
-  final prefs = await SharedPreferences.getInstance();
+  try {
+    dbService = DatabaseService();
+    // We try to init, but if it fails (common on web without wasm), 
+    // we continue so the app doesn't stay blank.
+    await dbService.init().timeout(const Duration(seconds: 5), onTimeout: () {
+      debugPrint('Database initialization timed out');
+    });
+  } catch (e) {
+    debugPrint('Database initialization failed: $e');
+  }
 
-  final authService = AuthService(prefs);
-  final shoeRepo = ShoeRepository(dbService);
-  final cartRepo = CartRepository(dbService);
-  final wishlistRepo = WishlistRepository(dbService);
+  try {
+    prefs = await SharedPreferences.getInstance();
+    authService = AuthService(prefs);
+    shoeRepo = ShoeRepository(dbService ?? DatabaseService()); 
+    cartRepo = CartRepository(dbService ?? DatabaseService());
+    wishlistRepo = WishlistRepository(dbService ?? DatabaseService());
+  } catch (e) {
+    debugPrint('Service initialization failed: $e');
+  }
 
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc(authService)..add(AppStarted()),
+          create: (_) => AuthBloc(authService ?? AuthService(prefs!))..add(AppStarted()),
         ),
         BlocProvider<ProductBloc>(
-          create: (_) => ProductBloc(shoeRepo)..add(LoadProducts()),
+          create: (_) => ProductBloc(shoeRepo!)..add(LoadProducts()),
         ),
         BlocProvider<CartBloc>(
-          create: (_) => CartBloc(cartRepo)..add(LoadCart()),
+          create: (_) => CartBloc(cartRepo!)..add(LoadCart()),
         ),
         BlocProvider<WishlistBloc>(
-          create: (_) => WishlistBloc(wishlistRepo)..add(LoadWishlist()),
+          create: (_) => WishlistBloc(wishlistRepo!)..add(LoadWishlist()),
         ),
       ],
       child: const SneakTapApp(),

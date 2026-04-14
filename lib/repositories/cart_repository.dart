@@ -8,8 +8,7 @@ class CartRepository {
   CartRepository(this._dbService);
 
   Future<List<CartItem>> getCartItems() async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    final List<Map<String, dynamic>> maps = await _dbService.rawQuery('''
       SELECT c.*, 
              s.id as shoe_id, s.name, s.brand, s.price, s.category, 
              s.description, s.sizes, s.colors, s.images, 
@@ -43,10 +42,8 @@ class CartRepository {
   }
 
   Future<int> addToCart(CartItem item) async {
-    final db = await _dbService.database;
-    
     // Check if item with same shoe, size, and color exists
-    final List<Map<String, dynamic>> existing = await db.query(
+    final List<Map<String, dynamic>> existing = await _dbService.query(
       'cart_items',
       where: 'shoe_id = ? AND size = ? AND color = ?',
       whereArgs: [item.shoe.id, item.size, item.color],
@@ -55,7 +52,7 @@ class CartRepository {
     if (existing.isNotEmpty) {
       // Update quantity
       final newQuantity = (existing.first['quantity'] as int) + item.quantity;
-      return await db.update(
+      return await _dbService.update(
         'cart_items',
         {'quantity': newQuantity},
         where: 'id = ?',
@@ -63,7 +60,7 @@ class CartRepository {
       );
     } else {
       // Insert new
-      return await db.insert('cart_items', {
+      return await _dbService.insert('cart_items', {
         'shoe_id': item.shoe.id,
         'size': item.size,
         'color': item.color,
@@ -73,11 +70,10 @@ class CartRepository {
   }
 
   Future<int> updateQuantity(int cartItemId, int newQuantity) async {
-    final db = await _dbService.database;
     if (newQuantity <= 0) {
       return await removeFromCart(cartItemId);
     }
-    return await db.update(
+    return await _dbService.update(
       'cart_items',
       {'quantity': newQuantity},
       where: 'id = ?',
@@ -86,8 +82,7 @@ class CartRepository {
   }
 
   Future<int> removeFromCart(int cartItemId) async {
-    final db = await _dbService.database;
-    return await db.delete(
+    return await _dbService.delete(
       'cart_items',
       where: 'id = ?',
       whereArgs: [cartItemId],
@@ -95,7 +90,6 @@ class CartRepository {
   }
 
   Future<void> clearCart() async {
-    final db = await _dbService.database;
-    await db.delete('cart_items');
+    await _dbService.delete('cart_items');
   }
 }

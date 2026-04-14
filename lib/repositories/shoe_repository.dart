@@ -7,14 +7,12 @@ class ShoeRepository {
   ShoeRepository(this._dbService);
 
   Future<List<Shoe>> getAllShoes() async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query('shoes');
+    final List<Map<String, dynamic>> maps = await _dbService.query('shoes');
     return maps.map((e) => Shoe.fromMap(e)).toList();
   }
 
   Future<Shoe?> getShoeById(int id) async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps = await _dbService.query(
       'shoes',
       where: 'id = ?',
       whereArgs: [id],
@@ -26,8 +24,7 @@ class ShoeRepository {
   }
 
   Future<List<Shoe>> getFeaturedShoes() async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps = await _dbService.query(
       'shoes',
       where: 'is_featured = ?',
       whereArgs: [1],
@@ -36,8 +33,7 @@ class ShoeRepository {
   }
 
   Future<List<Shoe>> getNewArrivals() async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps = await _dbService.query(
       'shoes',
       where: 'is_new_arrival = ?',
       whereArgs: [1],
@@ -46,8 +42,7 @@ class ShoeRepository {
   }
 
   Future<List<Shoe>> searchShoes(String query) async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps = await _dbService.query(
       'shoes',
       where: 'name LIKE ? OR brand LIKE ?',
       whereArgs: ['%$query%', '%$query%'],

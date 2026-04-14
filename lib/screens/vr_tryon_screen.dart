@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 
 class VrTryOnScreen extends StatelessWidget {
   final int shoeId;
 
   const VrTryOnScreen({super.key, required this.shoeId});
+
+  Future<void> _launchSnapLens(BuildContext context) async {
+    // Demo Nike Sneaker Try-On Lens URL
+    final Uri url = Uri.parse(
+      'https://www.snapchat.com/unlock/?type=SNAPCODE&uuid=b4b7264a974041b18126d40ff424de81&metadata=01',
+    );
+    
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error launching Snapchat: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +58,7 @@ class VrTryOnScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               Text(
-                'Virtual Try-On',
+                'Ready to Try?',
                 style: Theme.of(context).textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
@@ -46,20 +66,21 @@ class VrTryOnScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: AppColors.accent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'COMING SOON',
+                  'POWERED BY SNAPCHAT',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: Colors.white,
                     letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                "We're crafting an immersive AR experience right now. Soon, you'll be able to see exactly how these sneakers look on your feet before you buy them!",
+                "Experience these sneakers on your feet right now! We'll open a special Snapchat Lens where you can see the 3D model and check the fit in AR.",
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppColors.secondary,
@@ -67,9 +88,21 @@ class VrTryOnScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              ElevatedButton(
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _launchSnapLens(context),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('LAUNCH SNAP LENS'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
                 onPressed: () => context.pop(),
-                child: const Text('Back to Product'),
+                child: const Text('Maybe Later'),
               )
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../blocs/cart/cart_bloc.dart';
 import '../blocs/cart/cart_event.dart';
 import '../blocs/product/product_bloc.dart';
@@ -11,6 +12,7 @@ import '../blocs/wishlist/wishlist_state.dart';
 import '../models/shoe_model.dart';
 import '../models/cart_item_model.dart';
 import '../constants/app_colors.dart';
+import '../utils/size_utils.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int shoeId;
@@ -70,8 +72,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     height: 300,
                     width: double.infinity,
                     color: AppColors.secondaryBackground,
-                    child: Center(
-                      child: Icon(Icons.shopping_bag, size: 120, color: AppColors.divider),
+                    child: CachedNetworkImage(
+                      imageUrl: shoe.images.isNotEmpty ? shoe.images.first : '',
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(color: AppColors.accent),
+                      ),
+                      errorWidget: (context, url, error) => const Center(
+                        child: Icon(Icons.shopping_bag, size: 120, color: AppColors.divider),
+                      ),
                     ),
                   ),
                   Padding(
@@ -115,7 +124,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        Text('Size', style: Theme.of(context).textTheme.titleLarge),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Size', style: Theme.of(context).textTheme.titleLarge),
+                            TextButton.icon(
+                              onPressed: () => _showSizeFinderDialog(shoe),
+                              icon: const Icon(Icons.straighten, size: 18),
+                              label: const Text('Find My Size'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.accent,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 12,
@@ -248,6 +271,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
+    );
+  }
+
+  void _showSizeFinderDialog(Shoe shoe) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Find Your Perfect Size'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter your foot length in centimeters (cm) to get a recommendation.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Foot Length (cm)',
+                hintText: 'e.g. 26.5',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final length = double.tryParse(controller.text);
+              if (length == null || length <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a valid length')),
+                );
+                return;
+              }
+
+              final recommendedUS = SizeUtils.getRecommendedUSSize(length);
+              final closestSize = SizeUtils.findClosestSize(recommendedUS, shoe.sizes);
+
+              if (closestSize != null) {
+                setState(() => selectedSize = closestSize);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Recommended Size: $closestSize based on $length cm'),
+                    backgroundColor: AppColors.accent,
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Could not find a matching size for this shoe.')),
+                );
+              }
+            },
+            child: const Text('FIND SIZE'),
+          ),
+        ],
+      ),
     );
   }
 }

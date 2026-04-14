@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../blocs/wishlist/wishlist_bloc.dart';
 import '../blocs/wishlist/wishlist_event.dart';
 import '../blocs/wishlist/wishlist_state.dart';
@@ -29,9 +30,21 @@ class ShoeCard extends StatelessWidget {
                        color: AppColors.secondaryBackground,
                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                      ),
-                     child: Center(
-                       // Placeholder for image
-                       child: Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.divider),
+                     child: ClipRRect(
+                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                       child: CachedNetworkImage(
+                         imageUrl: shoe.images.isNotEmpty ? shoe.images.first : '',
+                         fit: BoxFit.cover,
+                         placeholder: (context, url) => Center(
+                           child: CircularProgressIndicator(
+                             strokeWidth: 2,
+                             color: AppColors.divider,
+                           ),
+                         ),
+                         errorWidget: (context, url, error) => Center(
+                           child: Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.divider),
+                         ),
+                       ),
                      ),
                    ),
                   Positioned(

@@ -8,8 +8,7 @@ class WishlistRepository {
   WishlistRepository(this._dbService);
 
   Future<List<WishlistItem>> getWishlist() async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    final List<Map<String, dynamic>> maps = await _dbService.rawQuery('''
       SELECT w.*, 
              s.id as shoe_id, s.name, s.brand, s.price, s.category, 
              s.description, s.sizes, s.colors, s.images, 
@@ -40,8 +39,7 @@ class WishlistRepository {
   }
 
   Future<bool> isInWishlist(int shoeId) async {
-    final db = await _dbService.database;
-    final List<Map<String, dynamic>> maps = await db.query(
+    final List<Map<String, dynamic>> maps = await _dbService.query(
       'wishlist',
       where: 'shoe_id = ?',
       whereArgs: [shoeId],
@@ -50,17 +48,16 @@ class WishlistRepository {
   }
 
   Future<int> toggleWishlist(Shoe shoe) async {
-    final db = await _dbService.database;
     final inList = await isInWishlist(shoe.id);
     
     if (inList) {
-      return await db.delete(
+      return await _dbService.delete(
         'wishlist',
         where: 'shoe_id = ?',
         whereArgs: [shoe.id],
       );
     } else {
-      return await db.insert('wishlist', {
+      return await _dbService.insert('wishlist', {
         'shoe_id': shoe.id,
       });
     }
