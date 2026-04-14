@@ -13,6 +13,9 @@ import '../models/shoe_model.dart';
 import '../models/cart_item_model.dart';
 import '../constants/app_colors.dart';
 import '../utils/size_utils.dart';
+import '../services/recommendation_service.dart';
+import '../blocs/product/product_bloc.dart';
+import '../blocs/product/product_state.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int shoeId;
@@ -36,6 +39,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             (s) => s.id == widget.shoeId,
             orElse: () => state.allShoes.first,
           );
+
+          // Log the view for smart recommendations
+          RecommendationService.logCategoryView(shoe.category);
 
           return Scaffold(
             appBar: AppBar(

@@ -7,6 +7,9 @@ import '../constants/app_colors.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/shoe_card.dart';
+import '../services/recommendation_service.dart';
+import '../models/shoe_model.dart';
+import 'package:collection/collection.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,6 +77,48 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+                        FutureBuilder<String?>(
+                          future: RecommendationService.getTopCategory(),
+                          builder: (context, snapshot) {
+                            final topCategory = snapshot.data;
+                            if (topCategory == null) return const SizedBox.shrink();
+
+                            final recommendedShoes = state.allShoes
+                                .where((s) => s.category == topCategory)
+                                .take(5)
+                                .toList();
+
+                            if (recommendedShoes.isEmpty) return const SizedBox.shrink();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Recommended for You',
+                                  style: Theme.of(context).textTheme.headlineMedium,
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 240,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: recommendedShoes.length,
+                                    itemBuilder: (context, index) {
+                                      return SizedBox(
+                                        width: 180,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: 16),
+                                          child: ShoeCard(shoe: recommendedShoes[index]),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          },
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

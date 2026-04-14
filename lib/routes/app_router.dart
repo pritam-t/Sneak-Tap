@@ -10,6 +10,7 @@ import '../screens/wishlist_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../screens/vr_tryon_screen.dart';
+import '../screens/checkout_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 class AppRouter {
@@ -108,6 +109,13 @@ class AppRouter {
           builder: (context, state) {
              final id = int.tryParse(state.pathParameters['id'] ?? '1') ?? 1;
              return VrTryOnScreen(shoeId: id);
+          },
+        ),
+        GoRoute(
+          path: '/checkout',
+          builder: (context, state) {
+            final total = state.extra as double? ?? 0.0;
+            return CheckoutScreen(totalAmount: total);
           },
         ),
       ],

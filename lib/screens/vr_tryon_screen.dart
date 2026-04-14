@@ -9,10 +9,17 @@ class VrTryOnScreen extends StatelessWidget {
   const VrTryOnScreen({super.key, required this.shoeId});
 
   Future<void> _launchSnapLens(BuildContext context) async {
-    // Demo Nike Sneaker Try-On Lens URL
-    final Uri url = Uri.parse(
-      'https://www.snapchat.com/unlock/?type=SNAPCODE&uuid=b4b7264a974041b18126d40ff424de81&metadata=01',
-    );
+    // User provided Snapchat Lens URLs
+    final List<String> lensUrls = [
+      'https://www.snapchat.com/lens/35dc6e0969994b8482ae2f779856e8aa?share_id=B1F2COcJKqs&locale=en-US',
+      'https://www.snapchat.com/lens/ff4d3b97297a4667b634aaa5314a5b9e?share_id=0c69kV4cUSY&locale=en-US',
+      'https://www.snapchat.com/lens/cc48f8209ef94438b1a089a16f7c5274?share_id=fWS0iHAzIaI&locale=en-GB',
+    ];
+    
+    // Pick one based on shoeId or just pick the first for consistency if preferred.
+    // Here we use shoeId to ensure the same shoe always gets the same lens from the list.
+    final String selectedUrl = lensUrls[shoeId % lensUrls.length];
+    final Uri url = Uri.parse(selectedUrl);
     
     try {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
